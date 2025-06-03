@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carregando Portal...</title>
+
+  <!-- Favicon base64: ícone cifrão verde -->
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA1MTIgNTEyJz48dGV4dCB4PScyNTYnIHk9JzI5NScgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI1MScgZm9udC13ZWlnaHQ9J3RoaWNrJyBmaWxsPScjMjdhNzAnPiQ8L3RleHQ+PC9zdmc+" type="image/svg+xml" />
+
   <style>
     body {
       display: flex;
@@ -55,7 +59,7 @@
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
-        img.src = portalFavicon + '?t=' + Date.now(); // cache busting
+        img.src = portalFavicon + '?t=' + Date.now();
       });
     }
 
