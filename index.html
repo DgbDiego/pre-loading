@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carregando Portal...</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+    }
+    .loader {
+      text-align: center;
+    }
+    .spinner {
+      border: 8px solid #eee;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="loader">
+    <div class="spinner"></div>
+    <p>Carregando serviços...</p>
+  </div>
+
+  <script>
+    const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/swagger';      // endpoint leve da API
+    const portalURL = 'https://portal-controlefinanceiro.onrender.com/';      // URL do portal
+
+    async function isOnline(url) {
+      try {
+        const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+        return true; // mesmo que falhe no CORS, o no-cors evita erros fatais
+      } catch {
+        return false;
+      }
+    }
+
+    async function waitForServices() {
+      const maxRetries = 30;
+      const delay = ms => new Promise(res => setTimeout(res, ms));
+
+      for (let i = 0; i < maxRetries; i++) {
+        const [apiOk, portalOk] = await Promise.all([
+          isOnline(apiURL),
+          isOnline(portalURL)
+        ]);
+
+        if (apiOk && portalOk) {
+          window.location.href = portalURL;
+          return;
+        }
+
+        await delay(3000); // espera 3 segundos antes de tentar de novo
+      }
+
+      document.querySelector('.loader p').textContent = 'Serviços indisponíveis. Tente novamente mais tarde.';
+    }
+
+    waitForServices();
+  </script>
+</body>
+</html>
