@@ -3,18 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Carregando Portal...</title>
+  <title>Carregando GRANA...</title>
 
-  <!-- Favicon cifrão verde -->
-  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA1MTIgNTEyJz48dGV4dCB4PScyNTYnIHk9JzI5NScgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI1MScgZm9udC13ZWlnaHQ9J3RoaWNrJyBmaWxsPScjMjdhNzAnPiQ8L3RleHQ+PC9zdmc+" type="image/svg+xml" />
+  <!-- Favicon: ícone cifrão branco -->
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyBmaWxsPSJ3aGl0ZSIgdmlld0JveD0iMCAwIDQ4IDQ4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjI0IiB5PSIzMiIgc3R5bGU9ImZvbnQtc2l6ZTozMHB4O2ZpbGw6I2ZmZjtmb250LWZhbWlseTpBcmlhbDtmb250LXdlaWdodDpib2xkO3RleHQtYW5jaG9yOm1pZGRsZTsiPiQ8L3RleHQ+PC9zdmc+" type="image/svg+xml" />
 
   <style>
     :root {
       --azul-escuro: #1e3a8a;
-      --cinza-claro: #f5f5f5;
-      --cinza-medio: #a0a0a0;
       --branco: #ffffff;
-      --preto: #000000;
+      --cinza-suave: #cbd5e1;
     }
 
     * {
@@ -25,64 +23,64 @@
       margin: 0;
       padding: 0;
       height: 100vh;
-      background-color: var(--cinza-claro);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--azul-escuro);
+      font-family: 'Segoe UI', sans-serif;
+      color: var(--branco);
       display: flex;
       justify-content: center;
       align-items: center;
-      color: var(--preto);
+      flex-direction: column;
       transition: opacity 0.8s ease;
     }
 
-    .loader {
-      text-align: center;
-      padding: 24px 32px;
-      background: var(--branco);
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-      animation: fadeIn 1s ease;
+    .logo {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+      animation: fadeIn 1s ease forwards;
     }
 
-    .logo-title {
-      font-size: 2rem;
-      font-weight: bold;
-      color: var(--azul-escuro);
-      opacity: 0;
-      transform: translateY(-10px);
-      animation: slideFadeIn 1s ease forwards;
-    }
-
-    .spinner {
-      border: 6px solid #e0e0e0;
-      border-top: 6px solid var(--azul-escuro);
+    .coin-loader {
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
-      width: 48px;
-      height: 48px;
-      animation: spin 1s linear infinite;
-      margin: 20px auto;
+      background: radial-gradient(circle at center, #ffd700 30%, #b8860b 100%);
+      position: relative;
+      margin-bottom: 24px;
+      animation: spin 1.5s linear infinite;
     }
 
-    .status-message {
-      font-size: 1rem;
-      color: var(--cinza-medio);
-      font-weight: 500;
-      opacity: 0;
-      animation: fadeIn 1.5s ease forwards;
-      animation-delay: 1.2s;
+    .coin-loader::after {
+      content: "$";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2rem;
+      color: #1e3a8a;
+      font-weight: bold;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .status {
+      font-size: 1.1rem;
+      color: var(--cinza-suave);
+      animation: blink 1.5s steps(1, start) infinite;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes slideFadeIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .fade-out {
@@ -91,18 +89,15 @@
   </style>
 </head>
 <body>
-  <div class="loader" id="loader">
-    <div class="logo-title">GRANA</div>
-    <div class="spinner"></div>
-    <p id="status" class="status-message">Acordando os serviços...</p>
-  </div>
+  <div class="logo">GRANA</div>
+  <div class="coin-loader"></div>
+  <div id="status" class="status">Acordando os serviços...</div>
 
   <script>
     const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/WeatherForecast';
     const portalURL = 'https://portal-controlefinanceiro.onrender.com/';
     const portalFavicon = portalURL + 'favicon.ico';
 
-    // Atualiza a mensagem após 5s
     setTimeout(() => {
       document.getElementById('status').textContent = 'Carregando serviços...';
     }, 5000);
@@ -137,10 +132,7 @@
 
         if (apiOk && portalOk) {
           document.getElementById('status').textContent = 'Tudo pronto! Redirecionando...';
-
-          // Aplica fade-out antes do redirecionamento
           document.body.classList.add('fade-out');
-
           await delay(1500);
           window.location.href = portalURL;
           return;
