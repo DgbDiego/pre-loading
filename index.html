@@ -39,14 +39,24 @@
   <script>
     const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/WeatherForecast';
     const portalURL = 'https://portal-controlefinanceiro.onrender.com/';
+    const portalFavicon = portalURL + 'favicon.ico';
 
-    async function isOnline(url) {
+    async function isApiOnline() {
       try {
-        const response = await fetch(url, { method: 'GET', mode: 'cors' });
+        const response = await fetch(apiURL, { method: 'GET', mode: 'cors' });
         return response.ok;
       } catch {
         return false;
       }
+    }
+
+    function isPortalOnline() {
+      return new Promise(resolve => {
+        const img = new Image();
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+        img.src = portalFavicon + '?t=' + Date.now(); // cache busting
+      });
     }
 
     async function waitForServices() {
@@ -55,8 +65,8 @@
 
       for (let i = 0; i < maxRetries; i++) {
         const [apiOk, portalOk] = await Promise.all([
-          isOnline(apiURL),
-          isOnline(portalURL)
+          isApiOnline(),
+          isPortalOnline()
         ]);
 
         if (apiOk && portalOk) {
