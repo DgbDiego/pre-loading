@@ -37,13 +37,13 @@
   </div>
 
   <script>
-    const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/swagger';      // endpoint leve da API
-    const portalURL = 'https://portal-controlefinanceiro.onrender.com/';      // URL do portal
+    const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/WeatherForecast';
+    const portalURL = 'https://portal-controlefinanceiro.onrender.com/';
 
     async function isOnline(url) {
       try {
-        const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
-        return true; // mesmo que falhe no CORS, o no-cors evita erros fatais
+        const response = await fetch(url, { method: 'GET', mode: 'cors' });
+        return response.ok;
       } catch {
         return false;
       }
@@ -64,7 +64,7 @@
           return;
         }
 
-        await delay(3000); // espera 3 segundos antes de tentar de novo
+        await delay(3000);
       }
 
       document.querySelector('.loader p').textContent = 'Serviços indisponíveis. Tente novamente mais tarde.';
