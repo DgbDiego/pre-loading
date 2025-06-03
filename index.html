@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carregando Portal...</title>
 
-  <!-- Favicon: ícone cifrão verde -->
+  <!-- Favicon cifrão verde -->
   <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA1MTIgNTEyJz48dGV4dCB4PScyNTYnIHk9JzI5NScgZm9udC1mYW1pbHk9J0FyaWFsJyBmb250LXNpemU9JzI1MScgZm9udC13ZWlnaHQ9J3RoaWNrJyBmaWxsPScjMjdhNzAnPiQ8L3RleHQ+PC9zdmc+" type="image/svg+xml" />
 
   <style>
@@ -15,6 +15,10 @@
       --cinza-medio: #a0a0a0;
       --branco: #ffffff;
       --preto: #000000;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -27,6 +31,7 @@
       justify-content: center;
       align-items: center;
       color: var(--preto);
+      transition: opacity 0.8s ease;
     }
 
     .loader {
@@ -35,6 +40,16 @@
       background: var(--branco);
       border-radius: 16px;
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      animation: fadeIn 1s ease;
+    }
+
+    .logo-title {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--azul-escuro);
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: slideFadeIn 1s ease forwards;
     }
 
     .spinner {
@@ -44,22 +59,40 @@
       width: 48px;
       height: 48px;
       animation: spin 1s linear infinite;
-      margin: 0 auto 20px;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+      margin: 20px auto;
     }
 
     .status-message {
       font-size: 1rem;
       color: var(--cinza-medio);
       font-weight: 500;
+      opacity: 0;
+      animation: fadeIn 1.5s ease forwards;
+      animation-delay: 1.2s;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideFadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-out {
+      opacity: 0;
     }
   </style>
 </head>
 <body>
-  <div class="loader">
+  <div class="loader" id="loader">
+    <div class="logo-title">GRANA</div>
     <div class="spinner"></div>
     <p id="status" class="status-message">Acordando os serviços...</p>
   </div>
@@ -69,6 +102,7 @@
     const portalURL = 'https://portal-controlefinanceiro.onrender.com/';
     const portalFavicon = portalURL + 'favicon.ico';
 
+    // Atualiza a mensagem após 5s
     setTimeout(() => {
       document.getElementById('status').textContent = 'Carregando serviços...';
     }, 5000);
@@ -103,7 +137,11 @@
 
         if (apiOk && portalOk) {
           document.getElementById('status').textContent = 'Tudo pronto! Redirecionando...';
-          await delay(2000);
+
+          // Aplica fade-out antes do redirecionamento
+          document.body.classList.add('fade-out');
+
+          await delay(1500);
           window.location.href = portalURL;
           return;
         }
