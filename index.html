@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carregando GRANA...</title>
 
-  <!-- Favicon: ícone cifrão branco -->
+  <!-- Favicon -->
   <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyBmaWxsPSJ3aGl0ZSIgdmlld0JveD0iMCAwIDQ4IDQ4IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjI0IiB5PSIzMiIgc3R5bGU9ImZvbnQtc2l6ZTozMHB4O2ZpbGw6I2ZmZjtmb250LWZhbWlseTpBcmlhbDtmb250LXdlaWdodDpib2xkO3RleHQtYW5jaG9yOm1pZGRsZTsiPiQ8L3RleHQ+PC9zdmc+" type="image/svg+xml" />
 
   <style>
@@ -13,24 +13,21 @@
       --azul-escuro: #1e3a8a;
       --branco: #ffffff;
       --cinza-suave: #cbd5e1;
-    }
-
-    * {
-      box-sizing: border-box;
+      --verde-ok: #22c55e;
+      --vermelho-erro: #f87171;
     }
 
     body {
       margin: 0;
       padding: 0;
-      height: 100vh;
       background-color: var(--azul-escuro);
       font-family: 'Segoe UI', sans-serif;
       color: var(--branco);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
-      flex-direction: column;
-      transition: opacity 0.8s ease;
+      height: 100vh;
     }
 
     .logo {
@@ -38,7 +35,6 @@
       font-weight: 700;
       letter-spacing: 2px;
       margin-bottom: 24px;
-      animation: fadeIn 1s ease forwards;
     }
 
     .coin-loader {
@@ -49,6 +45,7 @@
       position: relative;
       margin-bottom: 24px;
       animation: spin 1.5s linear infinite;
+      cursor: pointer;
     }
 
     .coin-loader::after {
@@ -62,78 +59,159 @@
       font-weight: bold;
     }
 
+    .status-container {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
     .status {
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: var(--cinza-suave);
-      animation: blink 1.5s steps(1, start) infinite;
+      margin: 4px 0;
+      transition: color 0.3s;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .ok {
+      color: var(--verde-ok);
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
+    .erro {
+      color: var(--vermelho-erro);
+    }
+
+    .progress-bar {
+      width: 240px;
+      height: 10px;
+      background-color: #334155;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background-color: #22c55e;
+      transition: width 0.3s ease;
     }
 
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    .fade-out {
-      opacity: 0;
-    }
   </style>
 </head>
 <body>
   <div class="logo">GRANA</div>
-  <div class="coin-loader"></div>
-  <div id="status" class="status">Acordando os serviços...</div>
+  <div class="coin-loader" onclick="playSound()"></div>
+
+  <div class="status-container">
+    <div id="apiDnsStatus" class="status">⏳ API DNS: Carregando...</div>
+    <div id="apiRespStatus" class="status">⏳ API Resposta: Aguardando...</div>
+    <div id="portalDnsStatus" class="status">⏳ Portal DNS: Carregando...</div>
+    <div id="portalRespStatus" class="status">⏳ Portal Resposta: Aguardando...</div>
+  </div>
+
+  <div class="progress-bar">
+    <div id="progressFill" class="progress-fill"></div>
+  </div>
+
+  <audio id="kachinSound" preload="auto">
+    <source src="https://www.myinstants.com/media/sounds/cash-register.mp3" type="audio/mpeg">
+  </audio>
 
   <script>
     const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/WeatherForecast';
+    const portalFavicon = 'https://portal-controlefinanceiro.onrender.com/favicon.ico';
     const portalURL = 'https://portal-controlefinanceiro.onrender.com/';
-    const portalFavicon = portalURL + 'favicon.ico';
 
-    setTimeout(() => {
-      document.getElementById('status').textContent = 'Carregando serviços...';
-    }, 5000);
+    const apiDnsStatus = document.getElementById('apiDnsStatus');
+    const apiRespStatus = document.getElementById('apiRespStatus');
+    const portalDnsStatus = document.getElementById('portalDnsStatus');
+    const portalRespStatus = document.getElementById('portalRespStatus');
+    const progressFill = document.getElementById('progressFill');
+    const sound = document.getElementById('kachinSound');
 
-    async function isApiOnline() {
+    function playSound() {
+      sound.play();
+    }
+
+    function icon(ok) {
+      if (ok === true) return '✅';
+      if (ok === false) return '❌';
+      return '⏳';
+    }
+
+    async function checkApiStep() {
       try {
+        const start = performance.now();
         const response = await fetch(apiURL, { method: 'GET', mode: 'cors' });
-        return response.ok;
+        const duration = Math.round(performance.now() - start);
+        return response.ok ? duration : null;
       } catch {
-        return false;
+        return null;
       }
     }
 
-    function isPortalOnline() {
-      return new Promise(resolve => {
+    async function checkPortalStep() {
+      return new Promise((resolve) => {
         const img = new Image();
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
+        const start = performance.now();
+        img.onload = () => resolve(Math.round(performance.now() - start));
+        img.onerror = () => resolve(null);
         img.src = portalFavicon + '?t=' + Date.now();
       });
     }
 
-    async function waitForServices() {
+    async function waitForSteps() {
       const maxRetries = 30;
       const delay = ms => new Promise(res => setTimeout(res, ms));
 
-      for (let i = 0; i < maxRetries; i++) {
-        const [apiOk, portalOk] = await Promise.all([
-          isApiOnline(),
-          isPortalOnline()
-        ]);
+      let completed = {
+        apiDns: false,
+        apiResp: false,
+        portalDns: false,
+        portalResp: false
+      };
 
-        if (apiOk && portalOk) {
-          document.getElementById('status').textContent = 'Tudo pronto! Redirecionando...';
-          document.body.classList.add('fade-out');
-          await delay(1500);
+      for (let i = 0; i < maxRetries; i++) {
+        if (!completed.apiDns) {
+          apiDnsStatus.textContent = `${icon()} API DNS: Verificando...`;
+          completed.apiDns = true;
+        }
+
+        const apiResp = await checkApiStep();
+        if (apiResp && !completed.apiResp) {
+          apiRespStatus.textContent = `${icon(true)} API Resposta: ${apiResp} ms`;
+          apiRespStatus.className = 'status ok';
+          completed.apiResp = true;
+        } else if (!completed.apiResp) {
+          apiRespStatus.textContent = `${icon()} API Resposta: Aguardando...`;
+        }
+
+        if (!completed.portalDns) {
+          portalDnsStatus.textContent = `${icon()} Portal DNS: Verificando...`;
+          completed.portalDns = true;
+        }
+
+        const portalResp = await checkPortalStep();
+        if (portalResp && !completed.portalResp) {
+          portalRespStatus.textContent = `${icon(true)} Portal Resposta: ${portalResp} ms`;
+          portalRespStatus.className = 'status ok';
+          completed.portalResp = true;
+        } else if (!completed.portalResp) {
+          portalRespStatus.textContent = `${icon()} Portal Resposta: Aguardando...`;
+        }
+
+        const percent =
+          (completed.apiDns ? 25 : 0) +
+          (completed.apiResp ? 25 : 0) +
+          (completed.portalDns ? 25 : 0) +
+          (completed.portalResp ? 25 : 0);
+
+        progressFill.style.width = percent + '%';
+
+        if (percent >= 100) {
+          await delay(1000);
           window.location.href = portalURL;
           return;
         }
@@ -141,10 +219,17 @@
         await delay(3000);
       }
 
-      document.getElementById('status').textContent = 'Serviços indisponíveis. Tente novamente mais tarde.';
+      if (!completed.apiResp) {
+        apiRespStatus.textContent = `${icon(false)} API Resposta: Falhou`;
+        apiRespStatus.className = 'status erro';
+      }
+      if (!completed.portalResp) {
+        portalRespStatus.textContent = `${icon(false)} Portal Resposta: Falhou`;
+        portalRespStatus.className = 'status erro';
+      }
     }
 
-    waitForServices();
+    waitForSteps();
   </script>
 </body>
 </html>
