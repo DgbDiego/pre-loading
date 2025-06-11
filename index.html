@@ -4,13 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carregando GRANA...</title>
-
-  <!-- Favicon SVG simplificado -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,
-  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
-    <circle cx='50' cy='50' r='45' fill='%230c111f'/>
-    <text x='50%' y='60%' text-anchor='middle' font-size='50' fill='white' font-family='Arial'>G</text>
-  </svg>">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23facc15' stroke='%23eab308' stroke-width='4'/%3E%3Ctext x='50%' y='56%' text-anchor='middle' fill='%230c111f' font-size='48' font-family='Arial' dy='.3em'%3E%24%3C/text%3E%3C/svg%3E" />
 
   <style>
     :root {
@@ -24,7 +18,7 @@
 
     body {
       margin: 0;
-      padding: 0;
+      padding: 0 20px;
       background: var(--azul-gradiente);
       font-family: 'Segoe UI', sans-serif;
       color: var(--branco);
@@ -33,6 +27,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      text-align: center;
     }
 
     .logo {
@@ -48,11 +43,10 @@
     }
 
     .status-container {
-      font-size: 1rem;
-      text-align: center;
+      font-size: 0.95rem;
       color: var(--cinza-suave);
       margin-bottom: 20px;
-      white-space: pre-line;
+      line-height: 1.5;
       animation: pulseText 1.2s infinite alternate;
     }
 
@@ -62,7 +56,8 @@
     }
 
     .progress-bar {
-      width: 320px;
+      width: 100%;
+      max-width: 320px;
       height: 10px;
       background-color: #1e293b;
       border-radius: 6px;
@@ -86,13 +81,11 @@
 </head>
 <body>
 
-  <div class="logo">
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="45" fill="#22c55e"/>
-      <circle cx="50" cy="50" r="30" fill="#0c111f"/>
-      <text x="50%" y="58%" text-anchor="middle" font-size="32" fill="#22c55e" font-family="Arial, sans-serif" font-weight="bold">G</text>
-    </svg>
-  </div>
+  <!-- SVG como logotipo animado -->
+  <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="48" fill="#facc15" stroke="#eab308" stroke-width="4"/>
+    <text x="50%" y="56%" text-anchor="middle" fill="#0c111f" font-size="48" font-family="Arial" dy=".3em">$</text>
+  </svg>
 
   <div class="status-container" id="statusContainer">
     ⏳ Inicializando...
@@ -124,9 +117,9 @@
 
     function updateStatus(times = {}) {
       const dots = '.'.repeat((Date.now() / 500 | 0) % 4);
-      let s = `🔍 API [DNS: ${stages.apiDns ? '✅' : '⏳'} | Resp: ${stages.apiResp ? times.api + 'ms' : '⏳'}]`;
-      s += ` | Portal [DNS: ${stages.portalDns ? '✅' : '⏳'} | Resp: ${stages.portalResp ? times.portal + 'ms' : '⏳'}] ${dots}`;
-      statusEl.textContent = s;
+      let apiLine = `🔍 API     [DNS: ${stages.apiDns ? '✅' : '⏳'} | Resp: ${stages.apiResp ? times.api + 'ms' : '⏳'}]`;
+      let portalLine = `🌐 Portal  [DNS: ${stages.portalDns ? '✅' : '⏳'} | Resp: ${stages.portalResp ? times.portal + 'ms' : '⏳'}] ${dots}`;
+      statusEl.innerHTML = `${apiLine}<br>${portalLine}`;
     }
 
     function updateProgress() {
