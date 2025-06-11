@@ -92,7 +92,7 @@
   </div>
 
   <script>
-    const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/favicon.ico';
+    // URLs do portal mantidas
     const portalURL = 'https://portal-controlefinanceiro.onrender.com/favicon.ico';
     const redirectURL = 'https://portal-controlefinanceiro.onrender.com/';
 
@@ -125,6 +125,29 @@
       progressFill.style.width = percent + '%';
     }
 
+    // Substitui o checkFavicon para checar o endpoint API
+    async function checkAPIEndpoint() {
+      try {
+        // Verifica DNS (simples fetch sem validar conteúdo)
+        const dnsResp = await fetch('https://controlefinanceiroapi-wqu8.onrender.com/api/Compra/Get', { method: 'HEAD' });
+        if (!dnsResp.ok) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    async function checkAPIOnline() {
+      try {
+        const resp = await fetch('https://controlefinanceiroapi-wqu8.onrender.com/api/Compra/Get');
+        if (!resp.ok) return false;
+        const text = await resp.text();
+        return text.trim() === "API Funcionando";
+      } catch {
+        return false;
+      }
+    }
+
     async function checkFavicon(url) {
       return new Promise(resolve => {
         const img = new Image();
@@ -136,8 +159,8 @@
 
     async function monitor() {
       for (let i = 1; i <= maxRetries; i++) {
-        if (!stages.apiDNS) stages.apiDNS = await checkFavicon(apiURL);
-        if (stages.apiDNS && !stages.apiOnline) stages.apiOnline = await checkFavicon(apiURL);
+        if (!stages.apiDNS) stages.apiDNS = await checkAPIEndpoint();
+        if (stages.apiDNS && !stages.apiOnline) stages.apiOnline = await checkAPIOnline();
 
         if (!stages.portalDNS) stages.portalDNS = await checkFavicon(portalURL);
         if (stages.portalDNS && !stages.portalOnline) stages.portalOnline = await checkFavicon(portalURL);
