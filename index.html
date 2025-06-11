@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Carregando GRANA...</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23facc15' stroke='%23eab308' stroke-width='4'/%3E%3Ctext x='50%' y='56%' text-anchor='middle' fill='%230c111f' font-size='48' font-family='Arial' dy='.3em'%3E%24%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='48' fill='%23facc15' stroke='%23eab308' stroke-width='4'/%3E%3Ctext x='50%25' y='56%25' text-anchor='middle' fill='%230c111f' font-size='48' font-family='Arial' dy='.3em'%3E%24%3C/text%3E%3C/svg%3E" />
 
   <style>
     :root {
@@ -46,13 +46,9 @@
       font-size: 0.95rem;
       color: var(--cinza-suave);
       margin-bottom: 20px;
-      line-height: 1.5;
-      animation: pulseText 1.2s infinite alternate;
-    }
-
-    @keyframes pulseText {
-      from { opacity: 0.7; }
-      to { opacity: 1; }
+      line-height: 1.6;
+      max-width: 90vw;
+      word-break: break-word;
     }
 
     .progress-bar {
@@ -81,7 +77,7 @@
 </head>
 <body>
 
-  <!-- SVG como logotipo animado -->
+  <!-- Logo SVG integrado -->
   <svg class="logo" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
     <circle cx="50" cy="50" r="48" fill="#facc15" stroke="#eab308" stroke-width="4"/>
     <text x="50%" y="56%" text-anchor="middle" fill="#0c111f" font-size="48" font-family="Arial" dy=".3em">$</text>
@@ -96,30 +92,31 @@
   </div>
 
   <script>
-    const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/WeatherForecast';
-    const portalFavicon = 'https://portal-controlefinanceiro.onrender.com/favicon.ico';
-    const portalURL = 'https://portal-controlefinanceiro.onrender.com/';
+    const apiURL = 'https://controlefinanceiroapi-wqu8.onrender.com/favicon.ico';
+    const portalURL = 'https://portal-controlefinanceiro.onrender.com/favicon.ico';
+    const redirectURL = 'https://portal-controlefinanceiro.onrender.com/';
 
     const statusEl = document.getElementById('statusContainer');
     const progressFill = document.getElementById('progressFill');
 
     const stages = {
-      apiDns: false,
-      apiResp: false,
-      portalDns: false,
-      portalResp: false,
+      apiDNS: false,
+      apiOnline: false,
+      portalDNS: false,
+      portalOnline: false,
       verificado: false,
-      redir: false
+      redirecionado: false
     };
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
     const maxRetries = 60;
 
-    function updateStatus(times = {}) {
-      const dots = '.'.repeat((Date.now() / 500 | 0) % 4);
-      let apiLine = `🔍 API     [DNS: ${stages.apiDns ? '✅' : '⏳'} | Resp: ${stages.apiResp ? times.api + 'ms' : '⏳'}]`;
-      let portalLine = `🌐 Portal  [DNS: ${stages.portalDns ? '✅' : '⏳'} | Resp: ${stages.portalResp ? times.portal + 'ms' : '⏳'}] ${dots}`;
-      statusEl.innerHTML = `${apiLine}<br>${portalLine}`;
+    function updateStatus() {
+      const dots = '.'.repeat(Math.max(0, (Date.now() / 500 | 0) % 4));
+
+      let statusText = `🔍 API [DNS: ${stages.apiDNS ? '✅' : '⏳'} | Online: ${stages.apiOnline ? '✅' : '⏳'}] • ` +
+                       `🌐 Portal [DNS: ${stages.portalDNS ? '✅' : '⏳'} | Online: ${stages.portalOnline ? '✅' : '⏳'}]${dots}`;
+      statusEl.innerHTML = statusText;
     }
 
     function updateProgress() {
@@ -128,69 +125,38 @@
       progressFill.style.width = percent + '%';
     }
 
-    async function checkDNS(url) {
+    async function checkFavicon(url) {
       return new Promise(resolve => {
         const img = new Image();
         img.onload = () => resolve(true);
         img.onerror = () => resolve(false);
-        img.src = url + '?nocache=' + Date.now();
+        img.src = url + '?cacheBust=' + Date.now();
       });
-    }
-
-    async function checkResponse(url) {
-      try {
-        const start = performance.now();
-        const res = await fetch(url, { method: 'GET', mode: 'cors' });
-        const time = Math.round(performance.now() - start);
-        return res.ok ? time : null;
-      } catch {
-        return null;
-      }
     }
 
     async function monitor() {
       for (let i = 1; i <= maxRetries; i++) {
-        const times = {};
+        if (!stages.apiDNS) stages.apiDNS = await checkFavicon(apiURL);
+        if (stages.apiDNS && !stages.apiOnline) stages.apiOnline = await checkFavicon(apiURL);
 
-        if (!stages.apiDns) stages.apiDns = await checkDNS('https://controlefinanceiroapi-wqu8.onrender.com/favicon.ico');
-        if (stages.apiDns && !stages.apiResp) {
-          const t = await checkResponse(apiURL);
-          if (t !== null) {
-            stages.apiResp = true;
-            times.api = t;
-          }
-        }
+        if (!stages.portalDNS) stages.portalDNS = await checkFavicon(portalURL);
+        if (stages.portalDNS && !stages.portalOnline) stages.portalOnline = await checkFavicon(portalURL);
 
-        if (!stages.portalDns) stages.portalDns = await checkDNS(portalFavicon);
-        if (stages.portalDns && !stages.portalResp) {
-          const t = await checkResponse(portalURL);
-          if (t !== null) {
-            stages.portalResp = true;
-            times.portal = t;
-          }
-        }
+        updateStatus();
+        updateProgress();
 
-        if (
-          stages.apiDns && stages.apiResp &&
-          stages.portalDns && stages.portalResp &&
-          !stages.verificado
-        ) {
+        if (stages.apiOnline && stages.portalOnline && !stages.verificado) {
           stages.verificado = true;
-          updateProgress();
-          updateStatus(times);
           await delay(1000);
         }
 
-        if (stages.verificado && !stages.redir) {
-          stages.redir = true;
-          updateStatus({ ...times, redir: true });
+        if (stages.verificado && !stages.redirecionado) {
+          stages.redirecionado = true;
           await delay(1500);
-          window.location.href = portalURL;
+          window.location.href = redirectURL;
           return;
         }
 
-        updateStatus(times);
-        updateProgress();
         await delay(3000);
       }
 
